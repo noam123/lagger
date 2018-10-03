@@ -135,8 +135,8 @@ function printFormattedLine(line) {
 
 function helpString() {
     return `
-    Lagger
-    ~~~~~~
+    Lagger (${packageJson.version})
+    ~~~~~~~~~~~
     Command execution:
     lagger [OPTIONS]
     
