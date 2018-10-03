@@ -92,38 +92,43 @@ function parseJsonedLine(jsonedLine) {
 
     let {timestamp, message, username, body, level} = line;
 
-    message = message.replace(/\r?\n|\r/gm, ''); // trim new lines
+    message = message && message.replace(/\r?\n|\r/gm, ''); // trim new lines
     username = username || "no-context";
     body = body || "";
+    level = level || "";
 
-    if (!timestamp || !message || !level)
+    if (!timestamp || !message)
         throw new Error("invalid input");
 
     return line;
 }
 
 function printFormattedLine(line) {
-    let formattedLine;
+    let lineObj, formattedLine;
     try {
-        const lineObj = parseJsonedLine(line);
-        if (performanceMsThreshold && lineObj.timestamp - previousTimestamp > performanceMsThreshold) {
-
-        }
-
+        lineObj = parseJsonedLine(line);
         formattedLine = `${lineObj.timestamp} [${lineObj.username}] [${lineObj.level}]: ${lineObj.message} ${lineObj.body}`;
+
+        if (performanceMsThreshold) {
+            const currentTimestamp = new Date(lineObj.timestamp).getTime();
+            const timeDelta = currentTimestamp - previousTimestamp;
+            if (timeDelta > performanceMsThreshold) {
+                formattedLine = `${chalk.bold.yellow(`Performance Threshold Hit [${performanceMsThreshold}]: ${timeDelta} ms`)}\n\r${formattedLine}`
+            }
+            previousTimestamp = currentTimestamp;
+        }
     } catch (e) {
         formattedLine = line;
     }
 
-    const level = (lineObj && lineObj.level) || "";
-
-    switch (level) {
+    switch (lineObj.level) {
         case "error":
-            var error = chalk.bold.red;
+            const error = chalk.bold.red;
             return console.log(error(formattedLine));
         case "warning":
         case "warn": return console.log(chalk.yellow(formattedLine));
         case "debug": return console.log(chalk.gray(formattedLine));
+        case "performance":
         default: return console.log(formattedLine);
     }
 }
