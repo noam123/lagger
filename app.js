@@ -92,10 +92,10 @@ function parseJsonedLine(jsonedLine) {
 
     let {timestamp, message, username, body, level} = line;
 
-    message = message && message.replace(/\r?\n|\r/gm, ''); // trim new lines
-    username = username || "no-context";
-    body = body || "";
-    level = level || "";
+    line.message = message && message.replace(/\r?\n|\r/gm, ''); // trim new lines
+    line.username = username || "no-context";
+    line.body = body || "";
+    line.level = level || "";
 
     if (!timestamp || !message)
         throw new Error("invalid input");
