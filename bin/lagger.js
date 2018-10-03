@@ -10,6 +10,8 @@ process.argv.slice(2).forEach(function(arg){
     switch (flag) {
         case '-f':
         case '-v':
+        case '-h':
+        case '-performance-threshold':
             args.push(arg);
         default:
             break;
