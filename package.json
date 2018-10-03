@@ -1,0 +1,17 @@
+{
+  "name": "lagger",
+  "version": "1.0.35",
+  "description": "",
+  "main": "app.js",
+  "bin": {
+    "lagger": "bin/lagger.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "ND",
+  "license": "ISC",
+  "dependencies": {
+    "chalk": "1.1.3"
+  }
+}
