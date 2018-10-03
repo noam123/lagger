@@ -11,7 +11,13 @@
 <br>
 ***RELEASE NOTES***
  <br><br>
+ <b>1.0.4</b><br>
+ - Added performance hit support.
+ - Added -h flag for command line usage.
+ <br><br>
  <b>1.0.3</b><br>
- - FIx new line breaks log
+ - Fix new line breaks log.
 
+ 
+  
 
