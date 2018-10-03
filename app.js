@@ -113,7 +113,7 @@ function printFormattedLine(line) {
             const currentTimestamp = new Date(lineObj.timestamp).getTime();
             const timeDelta = currentTimestamp - previousTimestamp;
             if (timeDelta > performanceMsThreshold) {
-                formattedLine = `${chalk.bold.yellow(`Performance Threshold Hit [${performanceMsThreshold} ms]: ${timeDelta} ms`)}\n\r${formattedLine}`
+                formattedLine = `${chalk.bold.yellow(`Performance Threshold Hit [${performanceMsThreshold} ms]: ${timeDelta} ms\t\tSTART ${new Date(previousTimestamp).toISOString()} END ${new Date(currentTimestamp).toISOString()}`)}\n\r${formattedLine}`
             }
             previousTimestamp = currentTimestamp;
         }
