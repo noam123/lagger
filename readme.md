@@ -11,6 +11,10 @@
 <br>
 ***RELEASE NOTES***
  <br><br>
+ <b>1.0.5</b><br>
+  - Fixed 'level of undefined' bug.
+  - Cosmetics.
+  
  <b>1.0.4</b><br>
  - Added performance hit support.
  - Added -h flag for command line usage.

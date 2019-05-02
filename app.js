@@ -117,26 +117,27 @@ function printFormattedLine(line) {
             }
             previousTimestamp = currentTimestamp;
         }
+
+        switch (lineObj.level) {
+            case "error":
+                const error = chalk.bold.red;
+                return console.log(error(formattedLine));
+            case "warning":
+            case "warn": return console.log(chalk.yellow(formattedLine));
+            case "debug": return console.log(chalk.gray(formattedLine));
+            case "performance":
+            default: return console.log(formattedLine);
+        }
+        
     } catch (e) {
         formattedLine = line;
-    }
-
-    switch (lineObj.level) {
-        case "error":
-            const error = chalk.bold.red;
-            return console.log(error(formattedLine));
-        case "warning":
-        case "warn": return console.log(chalk.yellow(formattedLine));
-        case "debug": return console.log(chalk.gray(formattedLine));
-        case "performance":
-        default: return console.log(formattedLine);
     }
 }
 
 function helpString() {
     return `
     Lagger (${packageJson.version})
-    ~~~~~~~~~~~
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     Command execution:
     lagger [OPTIONS]
     
