@@ -26,7 +26,7 @@ export class CfFormatter implements Formatter {
         try {
             line = JSON.parse(jsonedLine);
         } catch (e) {
-            throw new Error(`invalid line input: ${e}`);
+            throw new Error(`JSON_PARSE_ERROR: failed to parse line on ${e}, line ${jsonedLine}`);
         }
 
         let {metadata, data, hostname, level: cloudLevel, msg, name, pid, time} = line;
