@@ -41,7 +41,7 @@ export class ConsoleOutputChannel implements OutputChannel {
             switch (lineObj.level) {
                 case "error":
                     const error = chalk.bold.red;
-                    return console.error(error(formattedLine));
+                    return console.log(error(formattedLine));
                 case "warning":
                 case "warn": return console.log(chalk.yellow(formattedLine));
                 case "debug": return console.log(chalk.gray(formattedLine));

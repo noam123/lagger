@@ -38,3 +38,12 @@ export interface Account {
     name: string;
     _id: string;
 }
+
+export interface CloudJsonMessage {
+    name: string,
+    hostname: string;
+    pid: number;
+    level: string;
+    msg: string;
+    time: string;
+}

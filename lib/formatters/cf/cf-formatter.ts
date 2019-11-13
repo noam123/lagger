@@ -1,5 +1,5 @@
 import {Formatter, FormatterOutput} from "../formatter-types";
-import {CfJsonMessage, CfLine} from "./types";
+import {CfJsonMessage, CfLine, CloudJsonMessage} from "./types";
 
 
 export class CfFormatter implements Formatter {
@@ -22,18 +22,18 @@ export class CfFormatter implements Formatter {
     }
 
     private parseJsonedLine(jsonedLine:string): CfLine {
-        let line: CfJsonMessage;
+        let line: CfJsonMessage & CloudJsonMessage;
         try {
             line = JSON.parse(jsonedLine);
         } catch (e) {
             throw new Error(`invalid line input: ${e}`);
         }
 
-        let {metadata, data} = line;
+        let {metadata, data, hostname, level: cloudLevel, msg, name, pid, time} = line;
 
-        const message = data?.message;
-        const level = metadata?.level || "";
-        const timestamp = metadata?.time;
+        const message = data?.message || msg;
+        const level = metadata?.level || cloudLevel || "";
+        const timestamp = metadata?.time || time;
         const userName = metadata?.authenticatedEntity?.name;
         const accountName =  metadata?.authenticatedEntity?.activeAccount?.name || metadata?.authenticatedEntity?.account?.name;
         const namespace = metadata?.namespace || "no-namespace";
@@ -42,7 +42,7 @@ export class CfFormatter implements Formatter {
         const workflowId = metadata?.authenticatedEntity?.workflowId;
 
         if (!timestamp || !message) {
-            throw new Error("invalid input");
+            throw new Error(`INVALID_INPUT_ERROR: missing critical fields, timestamp ${timestamp} | message ${message}, line ${JSON.stringify(line)}`);
         }
 
         return {
