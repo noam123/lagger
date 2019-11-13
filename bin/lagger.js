@@ -2,7 +2,7 @@
 var spawn = require('child_process').spawn,
     path = require('path'),
     fs = require('fs'),
-    args = [path.join(__dirname, '../app.js')];
+    args = [path.join(__dirname, '../lib/app.js')];
 
 process.argv.slice(2).forEach(function(arg){
     var flag = arg.split('=')[0];
@@ -11,7 +11,9 @@ process.argv.slice(2).forEach(function(arg){
         case '-f':
         case '-v':
         case '-h':
-        case '-performance-threshold':
+        case '-p':
+        case '--performance-threshold':
+        case '--format':
             args.push(arg);
         default:
             break;

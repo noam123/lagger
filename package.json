@@ -1,8 +1,8 @@
 {
   "name": "lagger",
-  "version": "1.0.5",
+  "version": "1.2.0",
   "description": "",
-  "main": "app.js",
+  "main": "lib/app.js",
   "bin": {
     "lagger": "bin/lagger.js"
   },
@@ -12,6 +12,10 @@
   "author": "ND",
   "license": "ISC",
   "dependencies": {
-    "chalk": "1.1.3"
+    "chalk": "^1.1.3"
+  },
+  "devDependencies": {
+    "@types/chalk": "^2.2.0",
+    "@types/node": "^12.12.7"
   }
 }

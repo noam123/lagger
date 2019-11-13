@@ -6,7 +6,7 @@
 <br> - Git bash 
 <br>
 ***Notes***
-<br>for git bash color support use environment variable FORCE_COLOR with any value to force color
+<br>for git bash/zsh colors support use environment variable FORCE_COLOR with any value to force color
 <br>
 <br>
 ***RELEASE NOTES***
