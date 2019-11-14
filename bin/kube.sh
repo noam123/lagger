@@ -10,9 +10,9 @@ function pause(){
 trap ctrl_c INT
 
 function ctrl_c() {
-        echo "** Trapped CTRL-C"
+        echo "Recieved CTRL-C"
         PGID=$(ps opgid= "$!")
-        kill -9 -$PGID
+        kill -9 --$PGID
 }
 
 function executeInNewTab(){
@@ -147,8 +147,8 @@ case "$COMMAND" in
     #printf '%s\n' "${PID_ARRAY[@]}"
     for pid in "${PID_ARRAY[@]}"
     do
-      echo "${pid}"
-      # do something on $var
+      echo "waiting on ${pid}"
+      wait ${pid}
     done
    ;;
    "configmap")
