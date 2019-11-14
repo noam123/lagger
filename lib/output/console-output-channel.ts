@@ -46,7 +46,7 @@ export class ConsoleOutputChannel implements OutputChannel {
                 case "warn": return console.log(chalk.yellow(formattedLine));
                 case "debug": return console.log(chalk.gray(formattedLine));
                 case "performance":
-                default: return console.log(formattedLine);
+                default: return console.log(chalk.white(formattedLine));
             }
 
         } catch (e) {
