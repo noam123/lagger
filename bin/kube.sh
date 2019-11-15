@@ -10,9 +10,12 @@ function pause(){
 trap ctrl_c INT
 
 function ctrl_c() {
-        echo "Recieved CTRL-C"
-        PGID=$(ps opgid= "$!")
-        kill -9 --$PGID
+        #echo "Recieved CTRL-C"
+        for pid in "${PID_ARRAY[@]}"
+        do
+          PGID=$(ps opgid= "${pid}")
+        done
+        kill -9 -$PGID
 }
 
 function executeInNewTab(){
@@ -74,19 +77,12 @@ esac
 
 #echo "Using namespace:" $namespace
 #echo "Using configfile:" $kubeconfig
-PGID_ARRAY=()
-PID=0
+
 case "$COMMAND" in
    "logs")
    echo "Retrieving pods ..."
    initGetPodsCommand
-   #eval $getPodsCommand | grep $serviceName | while read -r service
-   services=$(eval $getPodsCommand | grep $serviceName)
-   echo "services:$services"
-   while read -r service
-   do
-     echo "service:$service"
-      while [ "$1" != "" ]; do
+   while [ "$1" != "" ]; do
        case "$1" in
          "--filter")
             shift # shift argKey first
@@ -99,6 +95,7 @@ case "$COMMAND" in
           "-p")
             shift
             performanceMsGapThreshold=$1
+            PerformanceFilter="|Performance Threshold Hit"
           ;;
           "-c" | "--consolidate-output")
             consolidateOutput=$1
@@ -110,12 +107,16 @@ case "$COMMAND" in
       shift # second shift for next argKey (argKey argValue)
       done
 
+   services=$(eval $getPodsCommand | grep $serviceName)
+   while read -r service
+   do
+     service=$(echo $service | awk '{print $1;}')
+    laggerCommand="lagger"
+
       #Defult lines
       if [ -z "$lines" ]; then
          lines=100
       fi
-
-      service=$(echo $service | awk '{print $1;}')
 
       if [ -z "$sshLogsCommand" ]; then
         kubeCommand="kubectl --kubeconfig=$kubeconfig --namespace=$namespace logs -f --tail=$lines $* $service"
@@ -123,13 +124,12 @@ case "$COMMAND" in
         kubeCommand=`printf "$sshLogsCommand" "$lines" "$service"`
       fi
 
-      if [ -z "$performanceMsGapThreshold" ]; then
-        laggerCommand="lagger"
-      else
-      	laggerCommand="lagger --performance-threshold=$performanceMsGapThreshold"
-      	if [[ ! -z "$filter" ]]; then
-        	 PerformanceFilter="|Performance Threshold Hit"
-	       fi
+      if [ ! -z "$consolidateOutput" ]; then
+           laggerCommand="$laggerCommand -t=${service}"
+      fi
+
+      if [ ! -z "$performanceMsGapThreshold" ]; then
+          laggerCommand="$laggerCommand --performance-threshold=$performanceMsGapThreshold"
       fi
 
       kubeCommand="$kubeCommand | $laggerCommand | grep --color=never -E '$filter$PerformanceFilter'"
@@ -138,8 +138,6 @@ case "$COMMAND" in
         executeInNewTab $kubeCommand
       else
         eval $kubeCommand &
-
-        echo "Waiting for pid $!"
         PID_ARRAY+=("$!")
       fi
    done <<< "$services"

@@ -9,6 +9,10 @@ export interface FormatterOutput {
      lineObj?: any;
 }
 
+export interface FormatterOptions {
+    tags?: string[];
+}
+
 export interface Line {
     message: string;
     level: string;

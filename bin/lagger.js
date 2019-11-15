@@ -12,6 +12,7 @@ process.argv.slice(2).forEach(function(arg){
         case '-v':
         case '-h':
         case '-p':
+        case '-t':
         case '--performance-threshold':
         case '--format':
             args.push(arg);

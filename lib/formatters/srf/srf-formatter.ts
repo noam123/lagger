@@ -1,10 +1,11 @@
 import {Formatter, FormatterOutput} from "../formatter-types";
+import {FormatterBase} from "../formatter-base";
 
 interface SrfJsonMessage {
 
 }
 
-export class SrfFormatter implements Formatter {
+export class SrfFormatter extends FormatterBase{
 
     public formatLine(line: string): FormatterOutput {
         try {

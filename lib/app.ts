@@ -15,6 +15,7 @@ process.on("uncaughtException", err => {
 let performanceMsThreshold:number;
 let format: string;
 let outputChannel: OutputChannel;
+let tags: string[] = [];
 
 const args = process.argv.slice(2);
 if (args && args.length > 0) {
@@ -42,6 +43,9 @@ if (args && args.length > 0) {
                     process.exit(1);
                 }
                 break;
+            case '-t':
+                tags.push(value);
+                break;
             case '-h':
                 console.log(HelpUtil.getHelpString());
                 process.exit(0);
@@ -58,5 +62,5 @@ if (!outputChannel) {
     outputChannel = new ConsoleOutputChannel({performanceMsThreshold});
 }
 
-const formatter: Formatter = FormatterFactory.create(format);
+const formatter: Formatter = FormatterFactory.create(format, {tags});
 outputChannel.output(formatter);

@@ -1,14 +1,16 @@
 import {Formatter, FormatterOutput} from "../formatter-types";
 import {CfJsonMessage, CfLine, CloudJsonMessage} from "./types";
+import {FormatterBase} from "../formatter-base";
 
 
-export class CfFormatter implements Formatter {
+export class CfFormatter extends FormatterBase{
 
     public formatLine(line: string): FormatterOutput {
         try {
             const lineObj = this.parseJsonedLine(line);
             const {timestamp, accountName, namespace, userName, level, message, correlationId, service, workflowId} = lineObj;
             const formattedLine = `${timestamp} [${namespace}]` +
+                `${this.tags}` +
                 `${accountName ? `[a:${accountName}]` : ""}` +
                 `${userName ? `[u:${userName}]` : ''}` +
                 `${correlationId ? `[cId:${correlationId}]` : ''}` +
