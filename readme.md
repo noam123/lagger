@@ -11,6 +11,11 @@
 For git bash/zsh colors support use environment variable FORCE_COLOR with any value to force color.
 
 ###RELEASE NOTES
+
+ **1.3.0**
+ - Support logs custom tags.
+ - Consolidate logs from multiple pods.  
+
  **1.2.0** 
   - Moved to TS.
   - Support multiple formatters.
