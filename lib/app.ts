@@ -1,10 +1,11 @@
 import {OutputChannel, OutputChannelType} from "./output/output-types";
-import {Formatter} from "./formatters/formatter-types";
+import {Formatter, FormatterOptions} from "./formatters/formatter-types";
 import {FormatterFactory} from "./formatters/formatter-factory";
 import {FileOutputChannel} from "./output/file-output-channel";
 import {ConsoleOutputChannel} from "./output/console-output-channel";
-import {HelpUtil} from "./utils/help-util";
-
+import {HelpUtils} from "./utils/help-utils";
+import {ConfigurationUtils} from "./utils/configuration-utils";
+import _ = require("lodash");
 const packageJson = require('../package.json');
 
 process.on("uncaughtException", err => {
@@ -12,10 +13,14 @@ process.on("uncaughtException", err => {
     process.exit(1);
 });
 
+
 let performanceMsThreshold:number;
 let format: string;
 let outputChannel: OutputChannel;
-let tags: string[] = [];
+let formatterOptions: FormatterOptions = {
+    tags: [],
+    silentFormatterErrors: false
+};
 
 const args = process.argv.slice(2);
 if (args && args.length > 0) {
@@ -25,7 +30,8 @@ if (args && args.length > 0) {
         let value = argArr[1];
 
         switch (flag) {
-            case '-f':
+            case '-o':
+            case '--output':
                 outputChannel = new FileOutputChannel(value);
                 break;
             case '-p':
@@ -44,23 +50,29 @@ if (args && args.length > 0) {
                 }
                 break;
             case '-t':
-                tags.push(value);
+                formatterOptions.tags.push(value);
+                break;
+            case '-s':
+                formatterOptions.silentFormatterErrors = true;
                 break;
             case '-h':
-                console.log(HelpUtil.getHelpString());
+                console.log(HelpUtils.getHelpString());
                 process.exit(0);
             case '-v':
                 console.log(packageJson.version);
                 process.exit(0);
             default:
-                throw "unsupported flag: " + flag;
+                throw new Error("unsupported flag: " + flag);
         }
     });
 }
+
+const environmentVariablesFormatterOptions = ConfigurationUtils.initEnvironmentVariablesConf();
+formatterOptions = _.assign(formatterOptions, environmentVariablesFormatterOptions);
 
 if (!outputChannel) {
     outputChannel = new ConsoleOutputChannel({performanceMsThreshold});
 }
 
-const formatter: Formatter = FormatterFactory.create(format, {tags});
+const formatter: Formatter = FormatterFactory.create(format, formatterOptions);
 outputChannel.output(formatter);

@@ -6,9 +6,6 @@ function pause(){
    read -p "$*"
 }
 
-# trap ctrl-c and call ctrl_c()
-trap ctrl_c INT
-
 function ctrl_c() {
         #echo "Recieved CTRL-C"
         for pid in "${PID_ARRAY[@]}"
@@ -18,9 +15,43 @@ function ctrl_c() {
         kill -9 -$PGID
 }
 
+function watch() {
+      command=$*
+      echo "command: $command"
+      while :;
+        do
+           watch_result=$(eval $command)
+           if [[ $? -eq 0 ]]; then
+              break;
+           fi
+           clear
+           sleep 1
+       done
+}
+
+watchFunctionString="function watch() {
+      command=\$*
+      echo 'command: \$command'
+      while :;
+        do
+           eval \$command
+           if [[ \$? -eq 0 ]]; then
+              break;
+           fi
+           clear
+           sleep 1
+       done
+}"
+
 function executeInNewTab(){
-   execution=$*
-   echo "$execution"
+    execution=$*
+    if [ -z "$watch" ]; then
+          echo "no watch"
+        else
+          execution="export LAGGER_SILENT_FORMATTER_ERRORS=true && $watchFunctionString && watch $execution"
+    fi
+
+    echo "$execution"
 
    # 57 - caps lock
    osascript <<EOF
@@ -60,7 +91,15 @@ fi
 case "$namespace" in
    "prod" | "default")
       namespace="default"
-      kubeconfig="/Users/noamdoron/.kube/config"
+      kubeconfig="/Users/noamdoron/.kube/config_codefresh"
+      ;;
+    "cluster-ent-2.cf-cd.com")
+      namespace="workflow"
+      kubeconfig="/Users/noamdoron/.kube/config_cluster-ent-2.cf-cd.com"
+      ;;
+    "rc05.cf-cd.com")
+      namespace="workflow"
+      kubeconfig="/Users/noamdoron/.kube/config_rc05.cf-cd.com"
       ;;
    *)
       if [ -z "$namespace" -a "$namespace" != " " ]; then
@@ -100,6 +139,9 @@ case "$COMMAND" in
           "-c" | "--consolidate-output")
             consolidateOutput=$1
           ;;
+          "-w" | "--watch")
+            watch=$1
+          ;;
          *)
            ;;
           esac
@@ -107,11 +149,24 @@ case "$COMMAND" in
       shift # second shift for next argKey (argKey argValue)
       done
 
-   services=$(eval $getPodsCommand | grep $serviceName)
+  if [ -z "$watch" ]; then
+         services=$(eval $getPodsCommand | grep $serviceName)
+        else
+          watch "$getPodsCommand | grep $serviceName"
+          services=$watch_result
+  fi
+
+   if [ -z "$services" ] || [ "$services" -eq "" ]; then
+       echo "No pods found for query: $serviceName
+configmap: $kubeconfig
+namespace: $namespace"
+       exit 1
+   fi
+
    while read -r service
    do
      service=$(echo $service | awk '{print $1;}')
-    laggerCommand="lagger"
+     laggerCommand="lagger"
 
       #Defult lines
       if [ -z "$lines" ]; then
@@ -137,11 +192,12 @@ case "$COMMAND" in
       if [ -z "$consolidateOutput" ]; then
         executeInNewTab $kubeCommand
       else
+        # trap ctrl-c and call ctrl_c()
+        trap ctrl_c INT
         eval $kubeCommand &
         PID_ARRAY+=("$!")
       fi
    done <<< "$services"
-    echo "pids:"
     #printf '%s\n' "${PID_ARRAY[@]}"
     for pid in "${PID_ARRAY[@]}"
     do

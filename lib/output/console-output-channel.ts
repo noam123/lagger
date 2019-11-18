@@ -38,7 +38,7 @@ export class ConsoleOutputChannel implements OutputChannel {
                 previousTimestamp = currentTimestamp;
             }
 
-            switch (lineObj.level) {
+            switch (lineObj?.level) {
                 case "error":
                     const error = chalk.bold.red;
                     return console.log(error(formattedLine));

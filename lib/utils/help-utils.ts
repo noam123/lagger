@@ -2,7 +2,7 @@
 const packageJson = require('../../package.json');
 
 
-export class HelpUtil {
+export class HelpUtils {
 
     public static getHelpString(): string {
         return `

@@ -18,7 +18,10 @@ export class CfFormatter extends FormatterBase{
                 `[${level}]: ${message}`;
             return {formattedLine, lineObj};
         } catch (e) {
-            console.error(e);
+            if (!this.silentFormatterErrors) {
+                console.error(e);
+            }
+
             return {formattedLine: line};
         }
     }

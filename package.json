@@ -1,6 +1,6 @@
 {
   "name": "lagger",
-  "version": "1.3.0",
+  "version": "2.0.0",
   "description": "",
   "main": "lib/app.js",
   "bin": {
@@ -12,10 +12,13 @@
   "author": "ND",
   "license": "ISC",
   "dependencies": {
-    "chalk": "^1.1.3"
+    "chalk": "^1.1.3",
+    "lodash": "^4.17.15",
+    "nconf": "^0.10.0"
   },
   "devDependencies": {
     "@types/chalk": "^2.2.0",
+    "@types/lodash": "^4.14.148",
     "@types/node": "^12.12.7"
   }
 }
