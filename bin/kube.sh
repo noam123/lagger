@@ -43,15 +43,53 @@ watchFunctionString="function watch() {
        done
 }"
 
+cntrlCFunctionString="ctrl_c() {
+                echo ''cntrl c received'';
+                kill -9 \$\$;
+           }"
+
+pollContainersFunctionString="${cntrlCFunctionString} && function pollContainers() {
+            echo \$1;
+            pwd;
+            trap ctrl_c INT;
+
+            while :;
+            do
+
+              services=\$(docker ps | grep -v ''\$1'');
+               if [[ -z ''\$services'' ]]; then
+                       echo ''No containers found for query: \$1'';
+                       exit 1;
+              fi;
+
+               while read -r service;
+                do\n
+
+                    read containerId service _ <<< \$service;
+
+                     if [[ '' \${CONTAINER_IDS[@]} '' =~ '' \${containerId} '' ]]; then
+                        continue;
+                    fi;
+
+                    echo ''Start logging container: \$containerId \$service'';
+
+                    CONTAINER_IDS+=(''\$containerId'');
+
+                    docker logs --tail=100 -f \$containerId &
+
+                done <<< ''\$services'';
+                sleep 1;
+            done
+            }"
+
+
 function executeInNewTab(){
     execution=$*
-    if [ -z "$watch" ]; then
-          echo "no watch"
-        else
+    if [ ! -z "$watch" ]; then
           execution="export LAGGER_SILENT_FORMATTER_ERRORS=true && $watchFunctionString && watch $execution"
     fi
 
-    echo "$execution"
+  echo "$execution"
 
    # 57 - caps lock
    osascript <<EOF
@@ -69,6 +107,15 @@ function initGetPodsCommand(){
       getPodsCommand="kubectl --kubeconfig=$kubeconfig --namespace=$namespace get pods $1"
    else
       getPodsCommand=`printf "$sshGetPodsCommand" "$1"`
+   fi
+}
+
+function is_services_defined() {
+    if [ -z "$services" ] || [ "$services" -eq "" ]; then
+       echo "No pods found for query: $serviceName
+configmap: $kubeconfig
+namespace: $namespace"
+       exit 1
    fi
 }
 
@@ -100,6 +147,10 @@ case "$namespace" in
     "rc05.cf-cd.com")
       namespace="workflow"
       kubeconfig="/Users/noamdoron/.kube/config_rc05.cf-cd.com"
+      ;;
+    "rc04.cf-cd.com")
+      namespace="workflow"
+      kubeconfig="/Users/noamdoron/.kube/config_rc04.cf-cd.com"
       ;;
    *)
       if [ -z "$namespace" -a "$namespace" != " " ]; then
@@ -156,12 +207,7 @@ case "$COMMAND" in
           services=$watch_result
   fi
 
-   if [ -z "$services" ] || [ "$services" -eq "" ]; then
-       echo "No pods found for query: $serviceName
-configmap: $kubeconfig
-namespace: $namespace"
-       exit 1
-   fi
+  is_services_defined
 
    while read -r service
    do
@@ -222,13 +268,25 @@ namespace: $namespace"
    done
    ;;
    "exec")
-	   kubectl --kubeconfig=$kubeconfig --namespace=$namespace get pods | grep $serviceName | while read -r service
+     echo "excluding from docker: $2"
+     if [ -z "$1" ]; then
+         execCommandArg="sh"
+     elif [ "$1" == "logs" ]; then
+         execCommandArg="-- bash -c '$pollContainersFunctionString && pollContainers $2'"
+     else
+       execCommandArg=$1
+     fi
+
+     initGetPodsCommand
+     services=$(eval $getPodsCommand | grep $serviceName)
+	   is_services_defined
+	   while read -r service
 	   do
 	      service=$(echo $service | awk '{print $1;}')
-	      kubeCommand="kubectl --kubeconfig=$kubeconfig --namespace=$namespace exec -it $service sh"
+	      kubeCommand="kubectl --kubeconfig=$kubeconfig --namespace=$namespace exec -it $service $execCommandArg"
 	      executeInNewTab $kubeCommand
 	      break;
-	   done
+	   done <<< "$services"
    ;;
    "delete")
 

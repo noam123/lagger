@@ -10,7 +10,9 @@ Lagger is a small logs formatter which help viewing and customizing live and fil
 - Zsh
 
 ###Lagger + K8S Usage
-Please make sure you've linked/copied/moved kube.sh to `usr/local/bin`
+####Prerequisites
+- bash 4 or higher
+- Please make sure you've linked/copied/moved kube.sh to `usr/local/bin`
 
 
 ####Logs
@@ -27,6 +29,12 @@ Please make sure you've linked/copied/moved kube.sh to `usr/local/bin`
  - check if distinct nodes can be grepped (api | payments) and viewed both cosolidated and separated
  - publish to npm
  - move args handling to configuration-utils.
+ - add 'none' formatter type (just print as is)
+ - add 'standard' formatter formattes timestamp|time level and message|msg
+ - expose FORMATTER_TYPE env var for your cf & make standard defualt
+ - add config file to kube for mapping pod to lagger format (rabbit=standard, api=cf, engine=none) 
+ - add lagger config file (~/.lagger/lagger-config.json) for custom formatter fields 
+    i.e ({customFormatter: [timestamp, level, jimmy]}), add corresponding 'custom' formatter type. 
 
  **2.0.0**
  - Support kube watch option(-w).

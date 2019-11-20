@@ -22,7 +22,7 @@ export class CfFormatter extends FormatterBase{
                 console.error(e);
             }
 
-            return {formattedLine: line};
+            return {formattedLine: `${this.tags}${line}`};
         }
     }
 
