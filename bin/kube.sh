@@ -152,6 +152,14 @@ case "$namespace" in
       namespace="workflow"
       kubeconfig="/Users/noamdoron/.kube/config_rc04.cf-cd.com"
       ;;
+    "rc01")
+      namespace="workflow"
+      kubeconfig="/Users/noamdoron/.kube/config_rc01.cf-cd.com"
+      ;;
+    "hover")
+      namespace="workflow"
+      kubeconfig="/Users/noamdoron/.kube/config_hover01.cf-cd.com"
+      ;;
    *)
       if [ -z "$namespace" -a "$namespace" != " " ]; then
          namespace=$default_namespace
