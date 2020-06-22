@@ -1,5 +1,5 @@
 import {OutputChannel, OutputChannelType} from "./output/output-types";
-import {Formatter, FormatterOptions} from "./formatters/formatter-types";
+import {Formatter, FormatterOptions} from "./types/formatter-types";
 import {FormatterFactory} from "./formatters/formatter-factory";
 import {FileOutputChannel} from "./output/file-output-channel";
 import {ConsoleOutputChannel} from "./output/console-output-channel";
@@ -9,9 +9,12 @@ import _ = require("lodash");
 const packageJson = require('../package.json');
 
 process.on("uncaughtException", err => {
-    console.log(err);
+    console.log("uncaughtException", err);
     process.exit(1);
-});
+}).on("unhandledRejection", (reason, promise) => {
+    console.log("unhandledRejection", reason, promise);
+    process.exit(1);
+})
 
 
 let performanceMsThreshold:number;
@@ -50,6 +53,9 @@ if (args && args.length > 0) {
                 }
                 break;
             case '-t':
+                if (!value) {
+                    break;
+                }
                 formatterOptions.tags.push(value);
                 break;
             case '-s':

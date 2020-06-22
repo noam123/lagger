@@ -1,7 +1,7 @@
-import {Formatter} from "../formatters/formatter-types";
+import {Formatter} from "../types/formatter-types";
 import * as readline from "readline";
 import {ConsoleOptions, OutputChannel} from "./output-types";
-import chalk = require("chalk");
+const chalk = require("chalk");
 
 export class ConsoleOutputChannel implements OutputChannel {
 
@@ -28,6 +28,9 @@ export class ConsoleOutputChannel implements OutputChannel {
         let previousTimestamp = 0;
         try {
             let {formattedLine, lineObj}  = formatter.formatLine(line);
+            if (!formattedLine) {
+                return;
+            }
 
             if (this.performanceMsThreshold) {
                 const currentTimestamp = new Date(lineObj.timestamp).getTime();

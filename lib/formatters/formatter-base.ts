@@ -1,4 +1,4 @@
-import {Formatter, FormatterOptions, FormatterOutput} from "./formatter-types";
+import {Formatter, FormatterOptions, FormatterOutput} from "../types/formatter-types";
 import {FormatterUtils} from "../utils/formatter-utils";
 
 
@@ -12,4 +12,7 @@ export abstract class FormatterBase implements Formatter{
     }
 
     abstract formatLine(line: string): FormatterOutput;
+
+    finalize(): any {}
+
 }

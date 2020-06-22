@@ -1,4 +1,4 @@
-import {Formatter, FormatterOutput} from "../formatter-types";
+import {Formatter, FormatterOutput} from "../../types/formatter-types";
 import {FormatterBase} from "../formatter-base";
 
 interface SrfJsonMessage {

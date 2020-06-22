@@ -1,7 +1,10 @@
 
 
+export const LAGGER_INFO_MESSAGE_TAG = "[lagger-info]";
+
 export interface Formatter {
     formatLine(line: string): FormatterOutput;
+    finalize(): Promise<any>
 }
 
 export interface FormatterOutput {

@@ -1,4 +1,4 @@
-import {FormatterOptions} from "../formatters/formatter-types";
+import {FormatterOptions} from "../types/formatter-types";
 
 
 const LAGGER_ENVIRONMENT_VARIABLES: Map<string, string> = new Map([

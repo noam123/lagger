@@ -1,4 +1,4 @@
-import {Formatter} from "../formatters/formatter-types";
+import {Formatter} from "../types/formatter-types";
 import * as fs from "fs";
 import * as readline from "readline";
 import * as path from "path";
@@ -24,7 +24,8 @@ export class FileOutputChannel implements OutputChannel {
         });
 
         lineReader.on('line', (line: string) => {
-            fs.appendFileSync(formattedFile, lineFormatter.formatLine(line).formattedLine + "\r\n");
+            const {formattedLine} = lineFormatter.formatLine(line);
+            fs.appendFileSync(formattedFile, `${formattedLine ? formattedLine + "\r\n" : ""}`);
         });
 
         lineReader.on('close', (val:any) => {

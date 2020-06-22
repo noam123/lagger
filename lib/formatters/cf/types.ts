@@ -1,4 +1,4 @@
-import {Line} from "../formatter-types";
+import {Line} from "../../types/formatter-types";
 
 export interface CfLine extends Line {
     namespace: string;

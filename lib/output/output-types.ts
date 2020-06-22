@@ -1,4 +1,4 @@
-import {Formatter} from "../formatters/formatter-types";
+import {Formatter} from "../types/formatter-types";
 
 export type OutputChannelType = "file" | "console";
 

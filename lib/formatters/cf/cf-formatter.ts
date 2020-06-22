@@ -1,9 +1,9 @@
-import {Formatter, FormatterOutput} from "../formatter-types";
+import {Formatter, FormatterOutput} from "../../types/formatter-types";
 import {CfJsonMessage, CfLine, CloudJsonMessage} from "./types";
 import {FormatterBase} from "../formatter-base";
 
 
-export class CfFormatter extends FormatterBase{
+export class CfFormatter extends FormatterBase {
 
     public formatLine(line: string): FormatterOutput {
         try {
