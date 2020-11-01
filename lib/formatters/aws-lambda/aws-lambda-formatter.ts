@@ -22,16 +22,16 @@ export class AwsLambdaFormatter extends FormatterBase {
                 return {formattedLine: line};
             }
 
-            const {timestamp, level, message, group, companyId, correlationId, service, stage, userId, logStreamName} = lineObj as GeoSpetialLine;
+            const {timestamp, level, message, group, companyId, correlationId, service, stage, user, logStreamName} = lineObj as GeoSpetialLine;
             const formattedLine = `${timestamp} ` +
                 `${this.tags}` +
                 `${correlationId ? `[cId:${correlationId}]` : ''}` +
                 `${logStreamName ? `[${logStreamName}]` : ''}` +
-                `${userId ? `[uId:${userId}]` : ''}` +
+                `${user ? `[uId:${user.id}][aid:${user.accountId}][${user.email}]` : ''}` +
                 `${companyId ? `[compId:${companyId}]` : ''}` +
                 `${group ? `[${group}]` : ''}` +
                 `${service ? `[${service}]` : ''}` +
-                `[${level}]: ${message}`;
+                `${level}: ${message}`;
             return {formattedLine, lineObj};
         } catch (e) {
             if (!this.silentFormatterErrors) {
@@ -86,13 +86,13 @@ export class AwsLambdaFormatter extends FormatterBase {
     }
 
     private _getAwsLambdaReportLine(parsedLine: string[]): AwsLambdaLine {
-        const [events, eventId, epochTimestamp, logStreamName, timestamp, requestId, level, ...message] = parsedLine;
+        const [events, eventId, epochTimestamp, logStreamName, timestamp, requestId, level, serviceName, functionName, correlationId, stage, user,...message] = parsedLine;
         if(events !== "EVENTS") {
             return { message: events, timestamp: NOT_AVAILABLE_TAG, level: NOT_AVAILABLE_TAG }
         }
         const normalizedTimestamp = this._epochToDate(parseInt(epochTimestamp));
         //if (parsedLine.length === 9) {
-            return {timestamp: normalizedTimestamp, level: level.toLowerCase(), logStreamName ,message: `${requestId} ${message.join(' ')}`}
+        return {timestamp: normalizedTimestamp, level: level.toLowerCase(), logStreamName ,message: `${requestId} ${message.join(' ')}`}
         //}
 
         // return {timestamp: normalizedTimestamp, level: level.toLowerCase(), logStreamName, message: message.join(' ')}

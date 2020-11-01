@@ -8,6 +8,7 @@ Lagger is a small logs formatter which help viewing and customizing live and fil
 ###Supported Consoles
 - Git bash 
 - Zsh
+- ConEmu
 
 ###Lagger + K8S Usage
 ####Prerequisites
@@ -27,7 +28,8 @@ Lagger is a small logs formatter which help viewing and customizing live and fil
 **TBD**
  
  - use yargs
- - [aws] use stage/service name to get all lamdas logs, add lambda and service names as tags   
+ - [aws] color each service name tag in a different color | color lambda report in yellow
+ - [aws] add execute in different tab as default and add -c/--consolidate for the current state 
  - check if distinct nodes can be grepped (api | payments) and viewed both cosolidated and separated
  - publish to npm
  - move args handling to configuration-utils.
