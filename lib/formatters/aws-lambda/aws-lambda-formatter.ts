@@ -30,7 +30,7 @@ export class AwsLambdaFormatter extends FormatterBase {
                 `${user ? `[uId:${user.id}][aid:${user.accountId}][${user.email}]` : ''}` +
                 `${companyId ? `[compId:${companyId}]` : ''}` +
                 `${group ? `[${group}]` : ''}` +
-                `${service ? `[${service}]` : ''}` +
+                `${service ? `[${service}]` : ''} ` +
                 `${level}: ${message}`;
             return {formattedLine, lineObj};
         } catch (e) {
