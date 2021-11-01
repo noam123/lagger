@@ -18,6 +18,34 @@ if [ -z "$COMMAND" -a "$COMMAND" != " " ]; then
 	exit 1
 fi
 
+function tailEventLogs() {
+   while read -r LOG_STREAM_NAME
+     do
+      #echo "LOG_STREAM_NAME: $LOG_STREAM_NAME"
+       LOG_STREAM_NAME=${LOG_STREAM_NAME//[$'\t\r\n']}
+       NORMALIZED_GROUP_NAME=$(echo "$LOG_STREAM_NAME" | cut -d'/' -f 4)
+       TMP_TOKENS_FILE="aws-$NORMALIZED_GROUP_NAME-events.txt"
+       SERVICE_NAME=$(echo "$NORMALIZED_GROUP_NAME" | cut -d'-' -f 1)
+       STAGE=$(echo "$NORMALIZED_GROUP_NAME" | cut -d'-' -f 2)
+       REAL_LAMBDA_NAME=$(echo "$NORMALIZED_GROUP_NAME" | cut -d'-' -f 3)
+       #TMP_TOKENS_FILE="aws-$PROFILE-$LOG_STREAM_NAME-$LAMBDA_NAME-events.txt"
+
+      # trap ctrl-c and call ctrl_c()
+       trap ctrl_c INT
+       watchEvenLogStreams $LOG_STREAM_NAME $START_TIME $TMP_TOKENS_FILE $SERVICE_NAME $STAGE $REAL_LAMBDA_NAME &
+       PID_ARRAY+=("$!")
+       echo "$LOG_STREAM_NAME: waiting for logs (pid: $!)"
+
+    done <<< "$LOG_GROUP_NAMES"
+
+
+     for pid in "${PID_ARRAY[@]}"
+      do
+        #echo "waiting on ${pid}"
+        wait ${pid}
+      done
+}
+
 function watchEvenLogStreams() {
     LOG_GROUP_NAME=$1
     START_TIME=$2
@@ -74,6 +102,7 @@ function ctrl_c() {
          #fi
 }
 
+MINUTES=0
 
 case "$COMMAND" in
    "logs")
@@ -98,6 +127,10 @@ case "$COMMAND" in
           "-w" | "--watch")
             watch=$1
           ;;
+        "-m" | "--minutes")
+            shift
+            MINUTES=$1
+         ;;
          *)
            ;;
           esac
@@ -107,38 +140,41 @@ case "$COMMAND" in
 
    LOG_GROUP_NAMES=$(aws --profile $PROFILE logs describe-log-groups --output text --query logGroups[*].[logGroupName] | grep $LAMBDA_NAME)
    #echo "LOG_GROUP_NAMES: $LOG_GROUP_NAMES"
-
-   START_TIME=$(date +%s%N | cut -b1-13)
-
-
+   START_TIME=$(date -d "$MINUTES minutes ago" +%s%N | cut -b1-13)
+  LOG_SREAM_NAMES=$(aws --profile $PROFILE logs describe-log-streams --log-group-name /aws/lambda/application-layers-dev-getApplicationsLayerNames --output text --descending --max-items 1)
    #TMP_TOKENS_FILE="aws-$PROFILE-$LAMBDA_NAME-events.txt"
 
   #trap ctrl_c INT
- while read -r LOG_STREAM_NAME
-   do
-    #echo "LOG_STREAM_NAME: $LOG_STREAM_NAME"
-     LOG_STREAM_NAME=${LOG_STREAM_NAME//[$'\t\r\n']}
-     NORMALIZED_GROUP_NAME=$(echo "$LOG_STREAM_NAME" | cut -d'/' -f 4)
-     TMP_TOKENS_FILE="aws-$NORMALIZED_GROUP_NAME-events.txt"
-     SERVICE_NAME=$(echo "$NORMALIZED_GROUP_NAME" | cut -d'-' -f 1)
-     STAGE=$(echo "$NORMALIZED_GROUP_NAME" | cut -d'-' -f 2)
-     REAL_LAMBDA_NAME=$(echo "$NORMALIZED_GROUP_NAME" | cut -d'-' -f 3)
-     #TMP_TOKENS_FILE="aws-$PROFILE-$LOG_STREAM_NAME-$LAMBDA_NAME-events.txt"
+  tailEventLogs
+#  if [ ! -z ${watch} ]; then
+#      tailEventLogs
+#  fi
 
-    # trap ctrl-c and call ctrl_c()
-     trap ctrl_c INT
-     watchEvenLogStreams $LOG_STREAM_NAME $START_TIME $TMP_TOKENS_FILE $SERVICE_NAME $STAGE $REAL_LAMBDA_NAME &
-     PID_ARRAY+=("$!")
-     echo "$LOG_STREAM_NAME: waiting for logs (pid: $!)"
-
-  done <<< "$LOG_GROUP_NAMES"
-
-
-   for pid in "${PID_ARRAY[@]}"
-    do
-      #echo "waiting on ${pid}"
-      wait ${pid}
-    done
+# while read -r LOG_STREAM_NAME
+#   do
+#    #echo "LOG_STREAM_NAME: $LOG_STREAM_NAME"
+#     LOG_STREAM_NAME=${LOG_STREAM_NAME//[$'\t\r\n']}
+#     NORMALIZED_GROUP_NAME=$(echo "$LOG_STREAM_NAME" | cut -d'/' -f 4)
+#     TMP_TOKENS_FILE="aws-$NORMALIZED_GROUP_NAME-events.txt"
+#     SERVICE_NAME=$(echo "$NORMALIZED_GROUP_NAME" | cut -d'-' -f 1)
+#     STAGE=$(echo "$NORMALIZED_GROUP_NAME" | cut -d'-' -f 2)
+#     REAL_LAMBDA_NAME=$(echo "$NORMALIZED_GROUP_NAME" | cut -d'-' -f 3)
+#     #TMP_TOKENS_FILE="aws-$PROFILE-$LOG_STREAM_NAME-$LAMBDA_NAME-events.txt"
+#
+#    # trap ctrl-c and call ctrl_c()
+#     trap ctrl_c INT
+#     watchEvenLogStreams $LOG_STREAM_NAME $START_TIME $TMP_TOKENS_FILE $SERVICE_NAME $STAGE $REAL_LAMBDA_NAME &
+#     PID_ARRAY+=("$!")
+#     echo "$LOG_STREAM_NAME: waiting for logs (pid: $!)"
+#
+#  done <<< "$LOG_GROUP_NAMES"
+#
+#
+#   for pid in "${PID_ARRAY[@]}"
+#    do
+#      #echo "waiting on ${pid}"
+#      wait ${pid}
+#    done
 
 
   #    while true; do
