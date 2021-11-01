@@ -63,7 +63,7 @@ function watchEvenLogStreams() {
 
     while true; do
       #echo "aws --profile $PROFILE logs filter-log-events --log-group-name $LOG_GROUP_NAME --output text --start-time $START_TIME | tee $TMP_TOKENS_FILE | lagger"
-      aws --profile $PROFILE logs filter-log-events --log-group-name $LOG_GROUP_NAME --output text --start-time $START_TIME | tee $TMP_TOKENS_FILE | lagger -t=$SERVICE_NAME -t=$STAGE -t=$REAL_LAMBDA_NAME
+      aws --profile $PROFILE logs filter-log-events --log-group-name $LOG_GROUP_NAME --output text --start-time $START_TIME | tee $TMP_TOKENS_FILE | lagger -t=$SERVICE_NAME -t=$STAGE -t=$REAL_LAMBDA_NAME | grep --color=never -E "$filter"
       NEXT_START_TIME=$(tac $TMP_TOKENS_FILE | grep -m 1 -P '^\t' | tr -d '[:space:]')
       #echo "NEXT_START_TIME: $NEXT_START_TIME"
       if [ ! -z ${NEXT_START_TIME+x} ] && [ "$NEXT_START_TIME" != "" ]; then
@@ -109,7 +109,7 @@ case "$COMMAND" in
       ##TODO: currently if there's a log burst and we'll have
       while [ "$1" != "" ]; do
        case "$1" in
-         "--filter")
+         "--filter" | "-f")
             shift # shift argKey first
             filter=$1
             ;;
@@ -138,6 +138,7 @@ case "$COMMAND" in
       shift # second shift for next argKey (argKey argValue)
       done
 
+  echo "Retrieving log group names..."
    LOG_GROUP_NAMES=$(aws --profile $PROFILE logs describe-log-groups --output text --query logGroups[*].[logGroupName] | grep $LAMBDA_NAME)
    #echo "LOG_GROUP_NAMES: $LOG_GROUP_NAMES"
    START_TIME=$(date -d "$MINUTES minutes ago" +%s%N | cut -b1-13)
