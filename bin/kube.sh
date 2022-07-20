@@ -1,6 +1,6 @@
 #!/bin/bash
-default_namespace=default
-defualt_kubeconfig="/Users/noamdoron/.kube/config"
+default_namespace=layers-time-filter
+defualt_kubeconfig="C:\Users\noamdoro\.kube\config"
 
 function pause(){
    read -p "$*"
@@ -104,7 +104,8 @@ EOF
 
 function initGetPodsCommand(){
 	if [ -z "$sshGetPodsCommand" ]; then
-      getPodsCommand="kubectl --kubeconfig=$kubeconfig --namespace=$namespace get pods $1"
+	  echo "kubectl --kubeconfig=$kubeconfig --namespace=$namespace --context=$context get pods $1"
+      getPodsCommand="kubectl --kubeconfig=$kubeconfig --namespace=$namespace --context=$context get pods $1"
    else
       getPodsCommand=`printf "$sshGetPodsCommand" "$1"`
    fi
@@ -136,9 +137,16 @@ fi
 
 
 case "$namespace" in
-   "prod" | "default")
+   "dev" | "default")
       namespace="default"
-      kubeconfig="/Users/noamdoron/.kube/config_codefresh"
+      context="arn:aws:eks:us-west-2:778953436404:cluster/eks-cluster"
+      kubeconfig="/C/Users/noamdoro/.kube/config"
+      ;;
+   "prod")
+      context="arn:aws:eks:us-west-2:778953436404:cluster/eks-cluster"
+      namespace=$(kubectl get namespace | grep -i $serviceName | awk '{print $1;}')
+      kubeconfig="/C/Users/noamdoro/.kube/config"
+      echo "kubeconfig=$kubeconfig namespace=$namespace context=$context"
       ;;
     "cluster-ent-2.cf-cd.com")
       namespace="workflow"
@@ -228,7 +236,7 @@ case "$COMMAND" in
       fi
 
       if [ -z "$sshLogsCommand" ]; then
-        kubeCommand="kubectl --kubeconfig=$kubeconfig --namespace=$namespace logs -f --tail=$lines $* $service"
+        kubeCommand="kubectl --kubeconfig=$kubeconfig --namespace=$namespace --context=$context logs -f --tail=$lines $* $service"
       else
         kubeCommand=`printf "$sshLogsCommand" "$lines" "$service"`
       fi
