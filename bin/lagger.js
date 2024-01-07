@@ -5,7 +5,7 @@ var spawn = require('child_process').spawn,
     args = [path.join(__dirname, '../lib/app.js')];
 
 process.argv.slice(2).forEach(function(arg){
-    var flag = arg.split('=')[0];
+    const flag = arg.split('=')[0];
 
     switch (flag) {
         case '-f':

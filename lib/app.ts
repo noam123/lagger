@@ -22,7 +22,9 @@ let format: string;
 let outputChannel: OutputChannel;
 let formatterOptions: FormatterOptions = {
     tags: [],
-    silentFormatterErrors: false
+    silentFormatterErrors: false,
+    localTime: true,
+    verbose: false
 };
 
 const args = process.argv.slice(2);

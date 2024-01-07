@@ -15,6 +15,8 @@ export interface FormatterOutput {
 export interface FormatterOptions {
     tags?: string[];
     silentFormatterErrors?: boolean;
+    localTime?: boolean;
+    verbose?: boolean;
 }
 
 export interface Line {

@@ -1,29 +1,30 @@
 Lagger is a small logs formatter which help viewing and customizing live and filed logs in a human readable format. 
 
 
-###Installation
+### Installation
 - Compile with tsc
 - npm install . -g
 
-###Supported Consoles
+### Supported Consoles
 - Git bash 
 - Zsh
 - ConEmu
 
-###Lagger + K8S Usage
-####Prerequisites
+### Lagger + K8S Usage
+#### Prerequisites
 - bash 4 or higher
 - Please make sure you've linked/copied/moved kube.sh to `usr/local/bin`
+- on Mac (2024) `brew install coreutils` and add alias in your .bash_profile etc `alias date=gdate`
 
 
-####Logs
+#### Logs
     kube logs <namespace> <pod_query> <OPTIONS>
 
-###Notes
+### Notes
  - For git bash/zsh colors support use environment variable FORCE_COLOR with any value to force color.
  - When using k8s contexts each context should be separated into a different configmap file.
 
-###RELEASE NOTES
+### RELEASE NOTES
 
 **TBD**
  

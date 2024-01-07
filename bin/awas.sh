@@ -5,12 +5,14 @@ export MSYS_NO_PATHCONV=1 #for gitbash on win, fixes  (InvalidParameterException
 
 COMMAND=$1
 shift
-PROFILE=$1
-shift
 LAMBDA_NAME=$1
+shift
+PROFILE=$1
 shift
 
 remaining_arg_line=$*
+
+MINUTES=0
 
 if [ -z "$COMMAND" -a "$COMMAND" != " " ]; then
 	echo "ERROR: Please supply command"
@@ -18,21 +20,32 @@ if [ -z "$COMMAND" -a "$COMMAND" != " " ]; then
 	exit 1
 fi
 
+if [ -z "$PROFILE" -a "$PROFILE" != " " ]; then
+	if [ -z "${AWS_PROFILE}" ]; then
+		echo "Profile arg (AWS profile) is missing and couldn't find AWS_PROFILE environment variable"
+    pause "Press something to continue ..."
+    exit 1
+	fi
+
+  echo "Using AWS_PROFILE: ${AWS_PROFILE} environment variable"
+  PROFILE=${AWS_PROFILE}
+fi
+
 function tailEventLogs() {
    while read -r LOG_STREAM_NAME
      do
-      #echo "LOG_STREAM_NAME: $LOG_STREAM_NAME"
+       echo "DEBUG: LOG_STREAM_NAME: $LOG_STREAM_NAME"
        LOG_STREAM_NAME=${LOG_STREAM_NAME//[$'\t\r\n']}
        NORMALIZED_GROUP_NAME=$(echo "$LOG_STREAM_NAME" | cut -d'/' -f 4)
        TMP_TOKENS_FILE="aws-$NORMALIZED_GROUP_NAME-events.txt"
-       SERVICE_NAME=$(echo "$NORMALIZED_GROUP_NAME" | cut -d'-' -f 1)
-       STAGE=$(echo "$NORMALIZED_GROUP_NAME" | cut -d'-' -f 2)
+       #SERVICE_NAME=$(echo "$NORMALIZED_GROUP_NAME" | cut -d'-' -f 1)
+       #STAGE=$(echo "$NORMALIZED_GROUP_NAME" | cut -d'-' -f 2)
        REAL_LAMBDA_NAME=$(echo "$NORMALIZED_GROUP_NAME" | cut -d'-' -f 3)
        #TMP_TOKENS_FILE="aws-$PROFILE-$LOG_STREAM_NAME-$LAMBDA_NAME-events.txt"
 
       # trap ctrl-c and call ctrl_c()
        trap ctrl_c INT
-       watchEvenLogStreams $LOG_STREAM_NAME $START_TIME $TMP_TOKENS_FILE $SERVICE_NAME $STAGE $REAL_LAMBDA_NAME &
+       watchEvenLogStreams $LOG_STREAM_NAME $START_TIME $TMP_TOKENS_FILE $REAL_LAMBDA_NAME &
        PID_ARRAY+=("$!")
        echo "$LOG_STREAM_NAME: waiting for logs (pid: $!)"
 
@@ -41,7 +54,7 @@ function tailEventLogs() {
 
      for pid in "${PID_ARRAY[@]}"
       do
-        #echo "waiting on ${pid}"
+        echo "DEBUG: waiting on ${pid}"
         wait ${pid}
       done
 }
@@ -50,21 +63,21 @@ function watchEvenLogStreams() {
     LOG_GROUP_NAME=$1
     START_TIME=$2
     TMP_TOKENS_FILE=$3
-    SERVICE_NAME=$4
-    STAGE=$5
-    REAL_LAMBDA_NAME=$6
+#    SERVICE_NAME=$4
+#    STAGE=$5
+    REAL_LAMBDA_NAME=$4
 
-#    echo "LOG_GROUP_NAME: $LOG_GROUP_NAME"
-#    echo "START_TIME: $START_TIME"
-#    echo "TMP_TOKENS_FILE: $TMP_TOKENS_FILE"
-#    echo "SERVICE_NAME: $SERVICE_NAME"
-#    echo "STAGE: $STAGE"
-#    echo "REAL_LAMBDA_NAME: $REAL_LAMBDA_NAME"
+    echo "DEBUG: LOG_GROUP_NAME: $LOG_GROUP_NAME"
+    echo "DEBUG: START_TIME: $START_TIME"
+    echo "DEBUG: TMP_TOKENS_FILE: $TMP_TOKENS_FILE"
+#    echo "DEBUG: SERVICE_NAME: $SERVICE_NAME"
+#    echo "DEBUG: STAGE: $STAGE"
+    echo "DEBUG: REAL_LAMBDA_NAME: $REAL_LAMBDA_NAME"
 
     while true; do
-      #echo "aws --profile $PROFILE logs filter-log-events --log-group-name $LOG_GROUP_NAME --output text --start-time $START_TIME | tee $TMP_TOKENS_FILE | lagger"
-      aws --profile $PROFILE logs filter-log-events --log-group-name $LOG_GROUP_NAME --output text --start-time $START_TIME | tee $TMP_TOKENS_FILE | lagger -t=$SERVICE_NAME -t=$STAGE -t=$REAL_LAMBDA_NAME | grep --color=never -E "$filter"
-      NEXT_START_TIME=$(tac $TMP_TOKENS_FILE | grep -m 1 -P '^\t' | tr -d '[:space:]')
+      #echo "aws --profile $PROFILE logs filter-log-events --log-group-name $LOG_GROUP_NAME --output text --start-time $START_TIME"
+      aws --profile $PROFILE logs filter-log-events --log-group-name $LOG_GROUP_NAME --output text --start-time $START_TIME | tee $TMP_TOKENS_FILE | lagger -t=$REAL_LAMBDA_NAME | grep --color=never -E "$filter"
+      NEXT_START_TIME=$(tac $TMP_TOKENS_FILE | grep -m 1 -E '^\t' | tr -d '[:space:]')
       #echo "NEXT_START_TIME: $NEXT_START_TIME"
       if [ ! -z ${NEXT_START_TIME+x} ] && [ "$NEXT_START_TIME" != "" ]; then
           #echo "Setting next time : $NEXT_START_TIME"
@@ -102,8 +115,6 @@ function ctrl_c() {
          #fi
 }
 
-MINUTES=0
-
 case "$COMMAND" in
    "logs")
       ##TODO: currently if there's a log burst and we'll have
@@ -140,57 +151,27 @@ case "$COMMAND" in
 
   echo "Retrieving log group names..."
    LOG_GROUP_NAMES=$(aws --profile $PROFILE logs describe-log-groups --output text --query logGroups[*].[logGroupName] | grep $LAMBDA_NAME)
-   #echo "LOG_GROUP_NAMES: $LOG_GROUP_NAMES"
-   START_TIME=$(date -d "$MINUTES minutes ago" +%s%N | cut -b1-13)
-  LOG_SREAM_NAMES=$(aws --profile $PROFILE logs describe-log-streams --log-group-name /aws/lambda/application-layers-dev-getApplicationsLayerNames --output text --descending --max-items 1)
+   if [ $? -neq 0 ]; then
+        echo "Failed to retrieve log groups"
+        exit 1
+   fi
+
+   echo "DEBUG: LOG_GROUP_NAMES: $LOG_GROUP_NAMES"
+   # CAUTION: on mac 2024 you'll get -d illegal option, fix: brew install coreutils && add alias date=gdate to .bash_profile (any other profile file)
+   #START_TIME=$(date -d "$MINUTES minutes ago" +%s%N | cut -b1-13)
+   # gdate for mac terminal
+   START_TIME=$(gdate -d "$MINUTES minutes ago" +%s%N | cut -b1-13)
+   echo "DEBUG: START_TIME: $START_TIME"
+  #LOG_SREAM_NAMES=$(aws --profile $PROFILE logs describe-log-streams --log-group-name /aws/lambda/application-layers-dev-getApplicationsLayerNames --output text --descending --max-items 1)
    #TMP_TOKENS_FILE="aws-$PROFILE-$LAMBDA_NAME-events.txt"
 
   #trap ctrl_c INT
   tailEventLogs
+
 #  if [ ! -z ${watch} ]; then
 #      tailEventLogs
 #  fi
 
-# while read -r LOG_STREAM_NAME
-#   do
-#    #echo "LOG_STREAM_NAME: $LOG_STREAM_NAME"
-#     LOG_STREAM_NAME=${LOG_STREAM_NAME//[$'\t\r\n']}
-#     NORMALIZED_GROUP_NAME=$(echo "$LOG_STREAM_NAME" | cut -d'/' -f 4)
-#     TMP_TOKENS_FILE="aws-$NORMALIZED_GROUP_NAME-events.txt"
-#     SERVICE_NAME=$(echo "$NORMALIZED_GROUP_NAME" | cut -d'-' -f 1)
-#     STAGE=$(echo "$NORMALIZED_GROUP_NAME" | cut -d'-' -f 2)
-#     REAL_LAMBDA_NAME=$(echo "$NORMALIZED_GROUP_NAME" | cut -d'-' -f 3)
-#     #TMP_TOKENS_FILE="aws-$PROFILE-$LOG_STREAM_NAME-$LAMBDA_NAME-events.txt"
-#
-#    # trap ctrl-c and call ctrl_c()
-#     trap ctrl_c INT
-#     watchEvenLogStreams $LOG_STREAM_NAME $START_TIME $TMP_TOKENS_FILE $SERVICE_NAME $STAGE $REAL_LAMBDA_NAME &
-#     PID_ARRAY+=("$!")
-#     echo "$LOG_STREAM_NAME: waiting for logs (pid: $!)"
-#
-#  done <<< "$LOG_GROUP_NAMES"
-#
-#
-#   for pid in "${PID_ARRAY[@]}"
-#    do
-#      #echo "waiting on ${pid}"
-#      wait ${pid}
-#    done
-
-
-  #    while true; do
-#    echo "aws --profile $PROFILE logs filter-log-events --log-group-name $LOG_GROUP_NAME --output text --start-time $START_TIME | tee $TMP_TOKENS_FILE | lagger"
-#    aws --profile $PROFILE logs filter-log-events --log-group-name $LOG_GROUP_NAME --output text --start-time $START_TIME | tee $TMP_TOKENS_FILE | lagger
-#    NEXT_START_TIME=$(tac $TMP_TOKENS_FILE | grep -m 1 -P '^\t' | tr -d '[:space:]')
-#    echo "NEXT_START_TIME: $NEXT_START_TIME"
-#    if [ ! -z ${NEXT_START_TIME+x} ] && [ "$NEXT_START_TIME" != "" ]; then
-#        #echo "Setting next time : $NEXT_START_TIME"
-#        NEXT_START_TIME=$((NEXT_START_TIME+1))
-#        #echo "after incr next time : $NEXT_START_TIME"
-#        START_TIME=$NEXT_START_TIME
-#    fi
-#    sleep 1
-#  done
 
   #rm -f $TMP_TOKENS_FILE
 

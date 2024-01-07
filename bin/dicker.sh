@@ -27,7 +27,7 @@ case "$1" in
             docker restart $(docker ps | grep $2 | awk '{print $1;}' | xargs )
             ;; 
         exec)
-            winpty docker exec -it $(docker ps | grep $2 | awk '{print $1;}' | xargs ) $3
+            docker exec -it $(docker ps | grep $2 | awk '{print $1;}' | xargs ) $3
             ;;
         inspect)
             docker inspect $(docker ps | grep $2 | awk '{print $1;}' | xargs )

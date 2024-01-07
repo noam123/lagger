@@ -1,7 +1,8 @@
 import {Formatter} from "../types/formatter-types";
 import * as readline from "readline";
 import {ConsoleOptions, OutputChannel} from "./output-types";
-const chalk = require("chalk");
+// NOTE: do not upgrade chalk to 5.x.x it's using dynamic imports (esm) and will mess typings
+import * as chalk from "chalk";
 
 export class ConsoleOutputChannel implements OutputChannel {
 
@@ -41,7 +42,7 @@ export class ConsoleOutputChannel implements OutputChannel {
                 previousTimestamp = currentTimestamp;
             }
 
-            switch (lineObj?.level) {
+            switch (lineObj?.level?.toLowerCase()) {
                 case "error":
                     const error = chalk.bold.red;
                     return console.log(error(formattedLine));
