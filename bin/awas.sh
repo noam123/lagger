@@ -5,9 +5,9 @@ export MSYS_NO_PATHCONV=1 #for gitbash on win, fixes  (InvalidParameterException
 
 COMMAND=$1
 shift
-LAMBDA_NAME=$1
-shift
 PROFILE=$1
+shift
+LAMBDA_NAME=$1
 shift
 
 remaining_arg_line=$*
@@ -150,8 +150,10 @@ case "$COMMAND" in
       done
 
   echo "Retrieving log group names..."
+  # TODO: cache group names
+  # TODO: get log groups by service name
    LOG_GROUP_NAMES=$(aws --profile $PROFILE logs describe-log-groups --output text --query logGroups[*].[logGroupName] | grep $LAMBDA_NAME)
-   if [ $? -neq 0 ]; then
+   if [[ $? != 0 || "$LOG_GROUP_NAMES" == " " ]]; then
         echo "Failed to retrieve log groups"
         exit 1
    fi
