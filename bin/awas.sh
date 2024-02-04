@@ -115,7 +115,17 @@ function ctrl_c() {
          #fi
 }
 
+function getLogGroups(){
+  #echo "DEBUG: retrieving log group names..."
+  log_groups=$(aws --profile $PROFILE logs describe-log-groups --output text --query logGroups[*].[logGroupName] | grep -i $LAMBDA_NAME)
+  echo "$log_groups"
+}
+
 case "$COMMAND" in
+   "lgn")
+      LOG_GROUP_NAMES=$(getLogGroups)
+      echo "$LOG_GROUP_NAMES"
+    ;;
    "logs")
       ##TODO: currently if there's a log burst and we'll have
       while [ "$1" != "" ]; do
@@ -152,7 +162,7 @@ case "$COMMAND" in
   echo "Retrieving log group names..."
   # TODO: cache group names
   # TODO: get log groups by service name
-   LOG_GROUP_NAMES=$(aws --profile $PROFILE logs describe-log-groups --output text --query logGroups[*].[logGroupName] | grep $LAMBDA_NAME)
+   LOG_GROUP_NAMES=$(getLogGroups)
    if [[ $? != 0 || "$LOG_GROUP_NAMES" == " " ]]; then
         echo "Failed to retrieve log groups"
         exit 1
