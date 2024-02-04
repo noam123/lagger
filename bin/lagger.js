@@ -16,6 +16,7 @@ process.argv.slice(2).forEach(function(arg){
         case '-s':
         case '--performance-threshold':
         case '--format':
+        case '-n':
             args.push(arg);
         default:
             break;

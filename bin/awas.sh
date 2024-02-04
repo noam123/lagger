@@ -75,8 +75,8 @@ function watchEvenLogStreams() {
     echo "DEBUG: REAL_LAMBDA_NAME: $REAL_LAMBDA_NAME"
 
     while true; do
-      #echo "aws --profile $PROFILE logs filter-log-events --log-group-name $LOG_GROUP_NAME --output text --start-time $START_TIME"
-      aws --profile $PROFILE logs filter-log-events --log-group-name $LOG_GROUP_NAME --output text --start-time $START_TIME | tee $TMP_TOKENS_FILE | lagger -t=$REAL_LAMBDA_NAME | grep --color=never -E "$filter"
+      #echo "aws --profile $PROFILE logs filter-log-events --log-group-name $LOG_GROUP_NAME --output text --start-time $START_TIME | lagger $necessary -t=$REAL_LAMBDA_NAME | grep --color=never -E $filter"
+      aws --profile $PROFILE logs filter-log-events --log-group-name $LOG_GROUP_NAME --output text --start-time $START_TIME | tee $TMP_TOKENS_FILE | lagger $necessary -t=$REAL_LAMBDA_NAME "$necessary" | grep --color=never -E "$filter"
       NEXT_START_TIME=$(tac $TMP_TOKENS_FILE | grep -m 1 -E '^\t' | tr -d '[:space:]')
       #echo "NEXT_START_TIME: $NEXT_START_TIME"
       if [ ! -z ${NEXT_START_TIME+x} ] && [ "$NEXT_START_TIME" != "" ]; then
@@ -151,6 +151,9 @@ case "$COMMAND" in
         "-m" | "--minutes")
             shift
             MINUTES=$1
+         ;;
+        "-n" | "--necessary")
+            necessary=$1
          ;;
          *)
            ;;

@@ -63,6 +63,9 @@ if (args && args.length > 0) {
             case '-s':
                 formatterOptions.silentFormatterErrors = true;
                 break;
+            case '-n':
+                formatterOptions.necessary = true;
+                break;
             case '-h':
                 console.log(HelpUtils.getHelpString());
                 process.exit(0);

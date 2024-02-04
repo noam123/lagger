@@ -17,6 +17,7 @@ export interface FormatterOptions {
     silentFormatterErrors?: boolean;
     localTime?: boolean;
     verbose?: boolean;
+    necessary?: boolean;
 }
 
 export interface Line {
