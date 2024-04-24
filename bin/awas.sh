@@ -5,12 +5,23 @@ export MSYS_NO_PATHCONV=1 #for gitbash on win, fixes  (InvalidParameterException
 
 COMMAND=$1
 shift
+#AW_PROFILE=$1
 PROFILE=$1
 shift
 LAMBDA_NAME=$1
 shift
 
 remaining_arg_line=$*
+
+# TODO: debug /pas/adb-proxy/db2-jenkins-master log group logs (getting all undefined)
+
+#declare -a profile_map=(["dev"]="adb_186093638438" ["prod"]="adb_348364229727")
+#PROFILE="${profile_map[$AW_PROFILE]}"
+#if [ -z "$PROFILE" ]; then
+#    PROFILE="$AW_PROFILE"
+#fi
+
+echo "DEBUG: using aws profile $PROFILE x"
 
 MINUTES=0
 
@@ -37,6 +48,8 @@ function tailEventLogs() {
        echo "DEBUG: LOG_STREAM_NAME: $LOG_STREAM_NAME"
        LOG_STREAM_NAME=${LOG_STREAM_NAME//[$'\t\r\n']}
        NORMALIZED_GROUP_NAME=$(echo "$LOG_STREAM_NAME" | cut -d'/' -f 4)
+       echo "DEBUG: NORMALIZED_GROUP_NAME: $NORMALIZED_GROUP_NAME"
+
        TMP_TOKENS_FILE="aws-$NORMALIZED_GROUP_NAME-events.txt"
        #SERVICE_NAME=$(echo "$NORMALIZED_GROUP_NAME" | cut -d'-' -f 1)
        #STAGE=$(echo "$NORMALIZED_GROUP_NAME" | cut -d'-' -f 2)
@@ -90,7 +103,7 @@ function watchEvenLogStreams() {
 }
 
 
-function executeInNewTab(){
+function executeInNewTabWin(){
     execution=$*
 #    if [ ! -z "$watch" ]; then
 #          execution="export LAGGER_SILENT_FORMATTER_ERRORS=true && $watchFunctionString && watch $execution"
@@ -98,6 +111,25 @@ function executeInNewTab(){
 
   echo "$execution"
   sh.exe -c $execution -new_console
+}
+
+function executeInNewTab(){
+    execution=$*
+    if [ ! -z "$watch" ]; then
+          execution="export LAGGER_SILENT_FORMATTER_ERRORS=true && $watchFunctionString && watch $execution"
+    fi
+
+  echo "$execution"
+
+   # 57 - caps lock
+   osascript <<EOF
+      tell application "iTerm" to activate
+      tell application "System Events" to tell process "iTerm" to keystroke "t" using command down
+      tell application "System Events" to tell process "iTerm" to key code 57
+      tell application "System Events" to tell process "iTerm" to keystroke "echo -ne '\\\033];$service\\\007' &"
+      tell application "System Events" to tell process "iTerm" to keystroke "$execution"
+      tell application "System Events" to tell process "iTerm" to key code 52
+EOF
 }
 
 function ctrl_c() {
@@ -118,6 +150,7 @@ function ctrl_c() {
 function getLogGroups(){
   #echo "DEBUG: retrieving log group names..."
   log_groups=$(aws --profile $PROFILE logs describe-log-groups --output text --query logGroups[*].[logGroupName] | grep -i $LAMBDA_NAME)
+  # TODO: if log_groups is empty terminate process
   echo "$log_groups"
 }
 
@@ -127,7 +160,6 @@ case "$COMMAND" in
       echo "$LOG_GROUP_NAMES"
     ;;
    "logs")
-      ##TODO: currently if there's a log burst and we'll have
       while [ "$1" != "" ]; do
        case "$1" in
          "--filter" | "-f")
@@ -155,12 +187,28 @@ case "$COMMAND" in
         "-n" | "--necessary")
             necessary=$1
          ;;
+#        "-s" | "--sequence")
+#            shift
+#            echo $1
+#            sequence=$1
+#         ;;
          *)
            ;;
           esac
 
       shift # second shift for next argKey (argKey argValue)
       done
+
+  START_TIME=$(gdate -d "$MINUTES minutes ago" +%s%N | cut -b1-13)
+  echo "DEBUG: START_TIME: $START_TIME"
+  SEQUENCE_FILE="$(dirname $BASH_SOURCE)/../resources/sequences/$LAMBDA_NAME"
+  if [[ -f "$SEQUENCE_FILE" ]]; then
+    echo "using sequence $SEQUENCE_FILE"
+    LOG_GROUP_NAMES=`cat $SEQUENCE_FILE`
+    echo "$value"
+    tailEventLogs
+    exit 0
+  fi
 
   echo "Retrieving log group names..."
   # TODO: cache group names
@@ -175,8 +223,7 @@ case "$COMMAND" in
    # CAUTION: on mac 2024 you'll get -d illegal option, fix: brew install coreutils && add alias date=gdate to .bash_profile (any other profile file)
    #START_TIME=$(date -d "$MINUTES minutes ago" +%s%N | cut -b1-13)
    # gdate for mac terminal
-   START_TIME=$(gdate -d "$MINUTES minutes ago" +%s%N | cut -b1-13)
-   echo "DEBUG: START_TIME: $START_TIME"
+
   #LOG_SREAM_NAMES=$(aws --profile $PROFILE logs describe-log-streams --log-group-name /aws/lambda/application-layers-dev-getApplicationsLayerNames --output text --descending --max-items 1)
    #TMP_TOKENS_FILE="aws-$PROFILE-$LAMBDA_NAME-events.txt"
 

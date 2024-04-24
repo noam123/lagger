@@ -1,0 +1,3 @@
+/aws/lambda/ADBFacadeSTAGrantAccess
+/aws/lambda/ADBSecretsMgmtFindAndLoadUnmanagedSecret
+/aws/lambda/GetDbTargetLambda-US-EAST-1
