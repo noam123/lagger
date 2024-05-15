@@ -5,23 +5,36 @@ export MSYS_NO_PATHCONV=1 #for gitbash on win, fixes  (InvalidParameterException
 
 COMMAND=$1
 shift
-#AW_PROFILE=$1
-PROFILE=$1
+AW_PROFILE=$1
+#PROFILE=$1
 shift
 LAMBDA_NAME=$1
 shift
 
 remaining_arg_line=$*
 
-# TODO: debug /pas/adb-proxy/db2-jenkins-master log group logs (getting all undefined)
+function getAwsProfile() {
+  case $1 in
+        'dev') echo "adb_186093638438";;
+        'prod') echo "adb_348364229727";;
+         *)
+           ;;
+    esac
+}
 
+# TODO: debug /pas/adb-proxy/db2-jenkins-master log group logs (getting all undefined)
+#echo "DEBUG: AW_PROFILE '$AW_PROFILE'"
+# associative arrays supported only in bash >= 4.0
 #declare -a profile_map=(["dev"]="adb_186093638438" ["prod"]="adb_348364229727")
 #PROFILE="${profile_map[$AW_PROFILE]}"
-#if [ -z "$PROFILE" ]; then
-#    PROFILE="$AW_PROFILE"
-#fi
+PROFILE=$(getAwsProfile "$AW_PROFILE")
+#echo "DEBUG: PROFILE '$PROFILE'"
+if [ -z "$PROFILE" ]; then
+    echo "DEBUG: PROFILE '$PROFILE' not found using $AW_PROFILE"
+    PROFILE="$AW_PROFILE"
+fi
 
-echo "DEBUG: using aws profile $PROFILE x"
+echo "DEBUG: using aws profile $PROFILE"
 
 MINUTES=0
 

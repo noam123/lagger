@@ -1,3 +1,4 @@
 /aws/lambda/ADBFacadeSTAGrantAccess
 /aws/lambda/ADBSecretsMgmtFindAndLoadUnmanagedSecret
+/aws/lambda/ADBTunnelPoolerAllocateTunnels
 /aws/lambda/GetDbTargetLambda-US-EAST-1
