@@ -28,6 +28,7 @@ Lagger is a small logs formatter which help viewing and customizing live and fil
 
 **TBD**
  
+ - add end date to aws logs in order to time frame the logs 
  - use yargs
  - [aws] color each service name tag in a different color | color lambda report in yellow
  - [aws] add execute in different tab as default and add -c/--consolidate for the current state 

@@ -23,7 +23,7 @@ export class AwsLambdaFormatter extends FormatterBase {
             const {timestamp, message, logStreamName, log_level, level, origin_service_name, origin_service_region, origin_func_name, context_info = {}} = lineObj as AdbLine;
             lineObj.level = lineObj.level || log_level;
             const {correlation_id, tenant_id, session_id, username} = context_info;
-            //const normalizedExecutionLine = origin_func_name && this._normalizeExecutionLine(origin_func_name)
+            const normalizedExecutionLine = origin_func_name && this._normalizeExecutionLine(origin_func_name)
 
             if (this.options.necessary) {
                 const formattedLine = `${timestamp} ` +

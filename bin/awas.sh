@@ -16,6 +16,8 @@ remaining_arg_line=$*
 function getAwsProfile() {
   case $1 in
         'dev') echo "adb_186093638438";;
+        'stage') echo "adb_576430725232";;
+        'pt') echo "adb_739244289383";;
         'prod') echo "adb_348364229727";;
          *)
            ;;
